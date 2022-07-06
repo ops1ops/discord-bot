@@ -34,28 +34,32 @@ client.once('ready', async () => {
   const membersTime = JSON.parse(fs.readFileSync("./stats.json").toString());
 
   const trackMembersStats = async () => {
-    const members = await clientGuild.members.fetch();
+    try {
+      const members = await clientGuild.members.fetch();
 
-    const voiceMembers = members
+      const voiceMembers = members
       .filter(({ voice }) => voice.channel)
       .map(({ user, voice, displayName }) => ({ channelId: voice.channelId, username: displayName, id: user.id }));
 
-    voiceMembers.forEach(({id, username}) => {
-      const item = membersTime[id] || {
-        time: 0,
-      };
+      voiceMembers.forEach(({id, username}) => {
+        const item = membersTime[id] || {
+          time: 0,
+        };
 
-      item.time += 1;
-      item.username = username;
+        item.time += 1;
+        item.username = username;
 
-      membersTime[id] = item;
-    });
+        membersTime[id] = item;
+      });
 
-    const sortedMembersTime = Object
+      const sortedMembersTime = Object
       .entries(membersTime)
       .sort(([, {time: timeA}], [, {time: timeB}]) => timeB - timeA);
 
-    ladder = sortedMembersTime.map(([id, item]) => ({ ...item, id }));
+      ladder = sortedMembersTime.map(([id, item]) => ({ ...item, id }));
+    } catch (error) {
+      console.log(new Date(), error)
+    }
   };
 
   await trackMembersStats();
