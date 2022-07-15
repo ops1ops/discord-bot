@@ -1,32 +1,22 @@
-require('dotenv').config();
+import  { Client, Intents } from 'discord.js';
+import fs from "fs";
 
-const { Client, Intents } = require('discord.js');
-const fs = require("fs");
+import {
+  GUILD_ID,
+  STATS_CHAT_ID,
+  LADDER_MESSAGE_ID,
+  TOKEN,
+  TRACK_INTERVAL_SECONDS,
+  FILE_SYNC_SECONDS,
+  DISCORD_STATS_UPDATE_SECONDS,
+  STATS_FILE_PATH
+} from "./settings.js";
 
-const { ladderToText } = require("./utils");
+import { ladderToText, validateInitialConfig } from "./utils.js";
 
-const clientId = '993958182735052841';
+validateInitialConfig();
 
-
-const GUILD_ID =  process.env.GUILD_ID;
-const STATS_CHAT_ID =  process.env.STATS_CHAT_ID;
-const LADDER_MESSAGE_ID =  process.env.LADDER_MESSAGE_ID;
-const STATS_FILE_PATH =  process.env.STATS_FILE_PATH || "./stats.json";
-
-const token = process.env.TOKEN;
-
-const TRACK_INTERVAL_SECONDS = Number(process.env.TRACK_INTERVAL_SECONDS) || 5;
-const FILE_SYNC_SECONDS = Number(process.env.FILE_SYNC_SECONDS) || 60 * 10;
-const DISCORD_STATS_UPDATE_SECONDS = Number(process.env.DISCORD_STATS_UPDATE_SECONDS) || 10;
-
-const initConfig = [GUILD_ID, STATS_CHAT_ID, LADDER_MESSAGE_ID, token, TRACK_INTERVAL_SECONDS, FILE_SYNC_SECONDS, DISCORD_STATS_UPDATE_SECONDS ];
-
-if (!initConfig.every(config => !!config)) {
-  console.log("One of the configs was not explicitly set. Using default values.");
-  console.log(initConfig);
-}
-
-if(!fs.existsSync(STATS_FILE_PATH)) {
+if (!fs.existsSync(STATS_FILE_PATH)) {
   fs.writeFileSync(STATS_FILE_PATH, JSON.stringify({}));
 }
 
@@ -40,10 +30,10 @@ const client = new Client(
     ],
   });
 
-client.login(token);
+client.login(TOKEN);
 
 client.once('ready', async () => {
-  const clientGuild = await client.guilds.fetch({ guild: GUILD_ID });
+  const clientGuild = await client.guilds.fetch({guild: GUILD_ID});
   const statsChat = clientGuild.channels.cache.get(STATS_CHAT_ID);
   const prevMessage = await statsChat.messages.fetch(LADDER_MESSAGE_ID);
 
@@ -56,8 +46,8 @@ client.once('ready', async () => {
       const members = await clientGuild.members.fetch();
 
       const voiceMembers = members
-        .filter(({ voice }) => voice.channel)
-        .map(({ user, voice, displayName }) => ({ channelId: voice.channelId, username: displayName, id: user.id }));
+        .filter(({voice}) => voice.channel)
+        .map(({user, voice, displayName}) => ({channelId: voice.channelId, username: displayName, id: user.id}));
 
       voiceMembers.forEach(({id, username}) => {
         const item = membersTime[id] || {
@@ -74,7 +64,7 @@ client.once('ready', async () => {
         .entries(membersTime)
         .sort(([, {time: timeA}], [, {time: timeB}]) => timeB - timeA);
 
-      ladder = sortedMembersTime.map(([id, item]) => ({ ...item, id }));
+      ladder = sortedMembersTime.map(([id, item]) => ({...item, id}));
     } catch (error) {
       console.log(new Date(), error)
     }
