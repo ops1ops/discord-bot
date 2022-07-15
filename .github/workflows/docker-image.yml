@@ -27,8 +27,6 @@ jobs:
         DOCKER_IMAGE: ${{secrets.DOCKER_IMAGE}}
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-        echo Cockc
-        echo ${{steps.generate_tag.outputs.tag}}
 
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_IMAGE}}:${{steps.generate_tag.outputs.tag}}
