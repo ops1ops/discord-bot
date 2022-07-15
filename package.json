@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "devDependencies": {
     "nodemon": "latest"
   },
@@ -14,7 +15,8 @@
     "dotenv": "^16.0.1"
   },
   "scripts": {
-    "start": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",

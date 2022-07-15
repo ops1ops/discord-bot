@@ -1,3 +1,5 @@
+import * as initConfig from "./settings.js";
+
 const secondsToDhms = (seconds) => {
   const d = Math.floor(seconds / (3600 * 24));
   const h = Math.floor(seconds % (3600 * 24) / 3600);
@@ -12,12 +14,19 @@ const secondsToDhms = (seconds) => {
   return dDisplay + hDisplay + mDisplay + sDisplay;
 };
 
-const ladderToText = (ladder) => {
+export const ladderToText = (ladder) => {
   return ladder.reduce((accumulator, item, index) => {
     return accumulator + `${index + 1}: ${item.username} - ${secondsToDhms(item.time)} \n`
   }, "Online statistic:\n")
 };
 
-module.exports = {
-  ladderToText,
-};
+export const validateInitialConfig = () => {
+  const undefinedSettings = Object.entries(initConfig).filter(([, value]) => !value).map(([key]) => key);
+
+  if (undefinedSettings.length > 0) {
+    console.log("One of the configs was not explicitly set.");
+    console.log(undefinedSettings);
+    process.exit(9);
+  }
+}
+

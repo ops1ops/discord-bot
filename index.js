@@ -1,15 +1,24 @@
-require('dotenv').config();
+import  { Client, Intents } from 'discord.js';
+import fs from "fs";
 
-const { Client, Intents } = require('discord.js');
-const fs = require("fs");
+import {
+  GUILD_ID,
+  STATS_CHAT_ID,
+  LADDER_MESSAGE_ID,
+  TOKEN,
+  TRACK_INTERVAL_SECONDS,
+  FILE_SYNC_SECONDS,
+  DISCORD_STATS_UPDATE_SECONDS,
+  STATS_FILE_PATH
+} from "./settings.js";
 
-const { ladderToText } = require("./utils");
+import { ladderToText, validateInitialConfig } from "./utils.js";
 
-const clientId = '993958182735052841';
-const guildId = '499325755357003798';
-const statsChatId = "994027085712605224";
-const dataBaseMessageId = "994029146797772820";
-const token = process.env.TOKEN;
+validateInitialConfig();
+
+if (!fs.existsSync(STATS_FILE_PATH)) {
+  fs.writeFileSync(STATS_FILE_PATH, JSON.stringify({}));
+}
 
 const client = new Client(
   {
@@ -21,42 +30,41 @@ const client = new Client(
     ],
   });
 
-client.login(token);
+client.login(TOKEN);
 
 client.once('ready', async () => {
-  const clientGuild = await client.guilds.fetch({ guild: guildId });
-  const statsChat = clientGuild.channels.cache.get(statsChatId);
-  const prevMessage = await statsChat.messages.fetch(dataBaseMessageId);
-  const prevStatsMessageText = prevMessage.content;
+  const clientGuild = await client.guilds.fetch({guild: GUILD_ID});
+  const statsChat = clientGuild.channels.cache.get(STATS_CHAT_ID);
+  const prevMessage = await statsChat.messages.fetch(LADDER_MESSAGE_ID);
 
   let ladder = [];
 
-  const membersTime = JSON.parse(fs.readFileSync("./stats.json").toString());
+  const membersTime = JSON.parse(fs.readFileSync(STATS_FILE_PATH).toString());
 
   const trackMembersStats = async () => {
     try {
       const members = await clientGuild.members.fetch();
 
       const voiceMembers = members
-      .filter(({ voice }) => voice.channel)
-      .map(({ user, voice, displayName }) => ({ channelId: voice.channelId, username: displayName, id: user.id }));
+        .filter(({voice}) => voice.channel)
+        .map(({user, voice, displayName}) => ({channelId: voice.channelId, username: displayName, id: user.id}));
 
       voiceMembers.forEach(({id, username}) => {
         const item = membersTime[id] || {
           time: 0,
         };
 
-        item.time += 1;
+        item.time += TRACK_INTERVAL_SECONDS;
         item.username = username;
 
         membersTime[id] = item;
       });
 
       const sortedMembersTime = Object
-      .entries(membersTime)
-      .sort(([, {time: timeA}], [, {time: timeB}]) => timeB - timeA);
+        .entries(membersTime)
+        .sort(([, {time: timeA}], [, {time: timeB}]) => timeB - timeA);
 
-      ladder = sortedMembersTime.map(([id, item]) => ({ ...item, id }));
+      ladder = sortedMembersTime.map(([id, item]) => ({...item, id}));
     } catch (error) {
       console.log(new Date(), error)
     }
@@ -64,15 +72,15 @@ client.once('ready', async () => {
 
   await trackMembersStats();
 
-  setInterval(trackMembersStats, 1_000);
+  setInterval(trackMembersStats, TRACK_INTERVAL_SECONDS * 1_000);
 
   setInterval(() => {
     console.log(new Date(), "Saving ", membersTime);
 
-    fs.writeFileSync("./stats.json", JSON.stringify(membersTime));
-  }, 60_000 * 10);
+    fs.writeFileSync(STATS_FILE_PATH, JSON.stringify(membersTime));
+  }, FILE_SYNC_SECONDS * 1_000);
 
   setInterval(() => {
     prevMessage.edit(ladderToText(ladder));
-  }, 10_000);
+  }, DISCORD_STATS_UPDATE_SECONDS * 1_000);
 });
