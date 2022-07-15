@@ -1,0 +1,33 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Generate Docker Image Tag
+      id: generate_tag
+      run: |
+        echo "::set-output name=tag::$(date +%s)"
+
+    - name: docker login
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        DOCKER_IMAGE: ${{secrets.DOCKER_IMAGE}}
+      run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_IMAGE}}:${{steps.generate_tag.outputs.tag}}
+      
+    - name: Docker Push
+      run: docker push ${{secrets.DOCKER_IMAGE}}:${{steps.generate_tag.outputs.tag}}
