@@ -19,9 +19,10 @@ jobs:
         DOCKER_USER: ${{secrets.DOCKER_USER}}
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
         DOCKER_IMAGE: ${{secrets.DOCKER_IMAGE}}
+        DOCKER_TAG: $(date +%s)
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-        export DOCKER_TAG=$(date +%s)
+        echo $DOCKER_TAG
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_IMAGE}}:$DOCKER_TAG
       
