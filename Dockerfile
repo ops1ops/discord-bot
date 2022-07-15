@@ -8,6 +8,4 @@ RUN npm install
 
 COPY . .
 
-#RUN echo "{}" > ./stats.json
-
 CMD [ "node", "index.js" ]
