@@ -17,8 +17,7 @@ jobs:
 
     - name: Generate Docker Image Tag
       run: |
-        export DOCKER_TAG=$(date +%s)
-        echo "::set-env name=DOCKER_TAG::$DOCKER_TAG"
+        echo "$(date +%s)" >> $DOCKER_TAG
 
     - name: docker login
       env:
