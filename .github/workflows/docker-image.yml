@@ -1,8 +1,6 @@
 name: Docker Image CI
 
-on:
-  push:
-    branches: [ master ]
+on: workflow_dispatch
 
 jobs:
 
@@ -28,6 +26,6 @@ jobs:
 
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_IMAGE}}:${{steps.generate_tag.outputs.tag}}
-      
+
     - name: Docker Push
       run: docker push ${{secrets.DOCKER_IMAGE}}:${{steps.generate_tag.outputs.tag}}
