@@ -28,5 +28,10 @@ export const validateInitialConfig = () => {
     console.log(undefinedSettings);
     process.exit(9);
   }
-}
+};
 
+const botsRegExp = /(bot|бот)/;
+
+export const shouldCountUserStats = (userName) => {
+  return !botsRegExp.test(userName.toLowerCase());
+};

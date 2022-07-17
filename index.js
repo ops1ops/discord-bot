@@ -12,7 +12,7 @@ import {
   STATS_FILE_PATH
 } from "./settings.js";
 
-import { ladderToText, validateInitialConfig } from "./utils.js";
+import { ladderToText, shouldCountUserStats, validateInitialConfig } from './utils.js';
 
 validateInitialConfig();
 
@@ -47,9 +47,14 @@ client.once('ready', async () => {
 
       const voiceMembers = members
         .filter(({voice}) => voice.channel)
-        .map(({user, voice, displayName}) => ({channelId: voice.channelId, username: displayName, id: user.id}));
+        .map(({user, voice, displayName, nickname}) =>
+          ({channelId: voice.channelId, username: displayName, id: user.id, nickname}));
 
-      voiceMembers.forEach(({id, username}) => {
+      voiceMembers.forEach(({id, username, nickname}) => {
+        if (!shouldCountUserStats(nickname || username)) {
+          return;
+        }
+
         const item = membersTime[id] || {
           time: 0,
         };
@@ -66,7 +71,7 @@ client.once('ready', async () => {
 
       ladder = sortedMembersTime.map(([id, item]) => ({...item, id}));
     } catch (error) {
-      console.log(new Date(), error)
+      console.log(new Date(), error);
     }
   };
 
