@@ -47,11 +47,11 @@ client.once('ready', async () => {
 
       const voiceMembers = members
         .filter(({voice}) => voice.channel)
-        .map(({user, voice, displayName, nickname}) =>
-          ({channelId: voice.channelId, username: displayName, id: user.id, nickname}));
+        .map(({user, voice, displayName, nickname, roles}) =>
+          ({channelId: voice.channelId, username: displayName, id: user.id, nickname, roles}));
 
-      voiceMembers.forEach(({id, username, nickname}) => {
-        if (!shouldCountUserStats(nickname || username)) {
+      voiceMembers.forEach(({id, username, nickname, roles}) => {
+        if (!shouldCountUserStats({name: nickname || username, roles})) {
           return;
         }
 

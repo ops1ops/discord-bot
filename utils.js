@@ -31,7 +31,14 @@ export const validateInitialConfig = () => {
 };
 
 const botsRegExp = /(bot|бот)/;
+const potentialBotRole = "998658028922470461"
 
-export const shouldCountUserStats = (userName) => {
-  return !botsRegExp.test(userName.toLowerCase());
+export const shouldCountUserStats = ({name, roles}) => {
+  const isBot = botsRegExp.test(name.toLowerCase());
+
+  if (roles.cache.get(potentialBotRole)) {
+    return false;
+  }
+
+  return !isBot;
 };
